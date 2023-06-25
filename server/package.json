@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "Start": "ts-node src/index.ts"
+    "ts-dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "dev": "npx nodemon dist/index.js",
+    "watch": "tsc -w"
   },
   "keywords": [],
   "author": "",
