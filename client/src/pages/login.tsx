@@ -1,4 +1,4 @@
-import { Box, Button } from "@chakra-ui/react";
+import { Box, Button, Flex, Link } from "@chakra-ui/react";
 import React from "react";
 import { Form, Formik } from "formik";
 import { Wrapper } from "../components/Wrapper";
@@ -45,6 +45,17 @@ const Login = ({}: LoginProps) => {
                 type="password"
               />
             </Box>
+            <Flex>
+              <Link
+                href="/forgot-password"
+                mt={4}
+                ml="auto"
+                type="submit"
+                colorScheme="teal"
+              >
+                Forgot Password?
+              </Link>
+            </Flex>
             <Button
               mt={4}
               type="submit"
