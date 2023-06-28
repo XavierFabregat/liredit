@@ -11,6 +11,7 @@ import mikroOrmConfig from "./mikro-orm.config";
 import { HelloResolver, PostResolver, UserResolver } from "./resolvers";
 import { MyContext } from "./types";
 import RedisStore from "connect-redis";
+import { sendEmail } from "./utils/sendEmail";
 
 declare module "express-session" {
   interface Session {
@@ -19,6 +20,7 @@ declare module "express-session" {
 }
 
 const main = async () => {
+  sendEmail("xavi.fabregat.pous@gmail.com", "hi there, this is a test email");
   const orm = await MikroORM.init(mikroOrmConfig);
 
   orm.getMigrator().up();

@@ -3,29 +3,29 @@ import { Field, Int, ObjectType } from "type-graphql";
 
 @ObjectType()
 @Entity()
-export class User{
+export class User {
+  [OptionalProps]?: "createdAt" | "updatedAt";
 
-    [OptionalProps]?: 'createdAt' | 'updatedAt';
+  @Field(() => Int)
+  @PrimaryKey()
+  id!: number;
 
-    @Field(() => Int)
-    @PrimaryKey()
-    id!: number;
+  @Field(() => String)
+  @Property({ type: "date" })
+  createdAt = new Date();
 
-    
-    @Field(() => String)
-    @Property({ type: 'date' })
-    createdAt = new Date();
+  @Field(() => String)
+  @Property({ onUpdate: () => new Date(), type: "date" })
+  updatedAt = new Date();
 
+  @Field(() => String)
+  @Property({ type: "text", unique: true })
+  username!: string;
 
-    @Field(() => String)
-    @Property({ onUpdate: () => new Date(), type: 'date' })
-    updatedAt = new Date();
+  @Property({ type: "text" })
+  password!: string;
 
-
-    @Field(() => String)
-    @Property({ type: 'text', unique: true })
-    username!: string;
-
-    @Property({ type: 'text' })
-    password!: string;
+  @Field(() => String)
+  @Property({ type: "text", unique: true })
+  email!: string;
 }
