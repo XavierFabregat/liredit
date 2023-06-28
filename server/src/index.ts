@@ -1,17 +1,16 @@
-import "reflect-metadata";
 import { MikroORM } from "@mikro-orm/core";
-import Express from "express";
 import { ApolloServer } from "apollo-server-express";
-import { buildSchema } from "type-graphql";
-import { createClient } from "redis";
-import session from "express-session";
+import RedisStore from "connect-redis";
 import cors from "cors";
+import Express from "express";
+import session from "express-session";
+import Redis from "ioredis";
+import "reflect-metadata";
+import { buildSchema } from "type-graphql";
+import "./loadEnv";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import mikroOrmConfig from "./mikro-orm.config";
 import { HelloResolver, PostResolver, UserResolver } from "./resolvers";
-import { MyContext } from "./types";
-import RedisStore from "connect-redis";
-import { sendEmail } from "./utils/sendEmail";
 
 declare module "express-session" {
   interface Session {
@@ -20,19 +19,21 @@ declare module "express-session" {
 }
 
 const main = async () => {
-  sendEmail("xavi.fabregat.pous@gmail.com", "hi there, this is a test email");
   const orm = await MikroORM.init(mikroOrmConfig);
 
   orm.getMigrator().up();
 
   const app = Express();
 
-  const redisClient = createClient();
+  const redisClient = new Redis();
 
-  redisClient
-    .connect()
-    .then(() => console.log("redis connected"))
-    .catch((err) => console.log("redis connection error: ", err));
+  redisClient.on("connect", () => {
+    console.log("Redis client connected");
+  });
+
+  redisClient.on("error", (err) => {
+    console.log("Something went wrong " + err);
+  });
 
   let redisStore = new RedisStore({
     client: redisClient,
@@ -69,8 +70,12 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }): MyContext =>
-      <MyContext>{ em: orm.em.fork(), req, res },
+    context: ({ req, res }) => ({
+      em: orm.em.fork(),
+      req,
+      res,
+      redis: redisClient,
+    }),
   });
 
   await apolloServer.start();
