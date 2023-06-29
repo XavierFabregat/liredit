@@ -1,16 +1,16 @@
-import { MikroORM } from "@mikro-orm/core";
+import "reflect-metadata";
 import { ApolloServer } from "apollo-server-express";
 import RedisStore from "connect-redis";
 import cors from "cors";
 import Express from "express";
 import session from "express-session";
 import Redis from "ioredis";
-import "reflect-metadata";
 import { buildSchema } from "type-graphql";
 import "./loadEnv";
 import { COOKIE_NAME, __prod__ } from "./constants";
-import mikroOrmConfig from "./mikro-orm.config";
 import { HelloResolver, PostResolver, UserResolver } from "./resolvers";
+import { DataSource } from "typeorm";
+import { Post, User } from "./entities";
 
 declare module "express-session" {
   interface Session {
@@ -19,9 +19,25 @@ declare module "express-session" {
 }
 
 const main = async () => {
-  const orm = await MikroORM.init(mikroOrmConfig);
+  const AppDataSource = new DataSource({
+    type: "postgres",
+    host: "localhost",
+    port: 5432,
+    username: "postgres",
+    database: "liredit",
+    password: "12345",
+    entities: [User, Post],
+    synchronize: true,
+    logging: !__prod__,
+  });
 
-  orm.getMigrator().up();
+  AppDataSource.initialize()
+    .then(() => {
+      console.log("AppDataSource is connected");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 
   const app = Express();
 
@@ -71,7 +87,6 @@ const main = async () => {
       validate: false,
     }),
     context: ({ req, res }) => ({
-      em: orm.em.fork(),
       req,
       res,
       redis: redisClient,
