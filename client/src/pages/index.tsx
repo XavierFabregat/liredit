@@ -7,7 +7,11 @@ import { Link } from "@chakra-ui/react";
 import NextLink from "next/link";
 
 const Index = () => {
-  const [{ data }] = usePostsQuery();
+  const [{ data }] = usePostsQuery({
+    variables: {
+      limit: 10,
+    },
+  });
 
   console.log("data: ", data);
 
@@ -18,7 +22,7 @@ const Index = () => {
       </NextLink>
       <br />
       {!data ? (
-        <div>Loadding ...</div>
+        <div>Loading ...</div>
       ) : (
         data.posts.map((p) => <div key={p.id}>{p.title}</div>)
       )}
