@@ -12,6 +12,7 @@ import {
   UseMiddleware,
 } from "type-graphql";
 import { isAuth } from "../middleware/isAuth";
+import { AppDataSource } from "../dataSource";
 
 @InputType()
 class PostInput {
@@ -25,8 +26,21 @@ class PostInput {
 @Resolver()
 export class PostResolver {
   @Query(() => [Post])
-  posts(): Promise<Post[]> {
-    return Post.find({});
+  async posts(
+    @Arg("limit", () => Int) limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+  ): Promise<Post[]> {
+    const realLimit = Math.min(50, limit);
+    const qb = AppDataSource.getRepository(Post)
+      .createQueryBuilder("p")
+      .orderBy('"createdAt"', "DESC")
+      .take(realLimit);
+
+    if (cursor) {
+      qb.where('"createdAt" < :cursor', { cursor: new Date(parseInt(cursor)) });
+    }
+
+    return await qb.getMany();
   }
 
   @Query(() => Post, { nullable: true })

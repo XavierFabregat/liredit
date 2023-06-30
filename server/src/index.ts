@@ -9,8 +9,7 @@ import { buildSchema } from "type-graphql";
 import "./loadEnv";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { HelloResolver, PostResolver, UserResolver } from "./resolvers";
-import { DataSource } from "typeorm";
-import { Post, User } from "./entities";
+import { AppDataSource } from "./dataSource";
 
 declare module "express-session" {
   interface Session {
@@ -19,19 +18,7 @@ declare module "express-session" {
 }
 
 const main = async () => {
-  const AppDataSource = new DataSource({
-    type: "postgres",
-    host: "localhost",
-    port: 5432,
-    username: "postgres",
-    database: "liredit",
-    password: "12345",
-    entities: [User, Post],
-    synchronize: true,
-    logging: !__prod__,
-  });
-
-  AppDataSource.initialize()
+  await AppDataSource.initialize()
     .then(() => {
       console.log("AppDataSource is connected");
     })
@@ -39,6 +26,9 @@ const main = async () => {
       console.log(err);
     });
 
+  await AppDataSource.runMigrations().then((res) => {
+    console.log("AppDataSource is migrated with result: ", res);
+  });
   const app = Express();
 
   const redisClient = new Redis();
