@@ -22,7 +22,6 @@ const { FLY, REDIS_URL } = process.env;
 console.log(FLY, "<== FLY");
 console.log(REDIS_URL, "<== REDIS_URL");
 
-
 const main = async () => {
   await AppDataSource.initialize()
     .then(() => {
@@ -32,12 +31,12 @@ const main = async () => {
       console.log(err);
     });
 
-   await AppDataSource.runMigrations().then((res) => {
+  await AppDataSource.runMigrations().then((res) => {
     console.log("AppDataSource is migrated with result: ", res);
   });
   const app = Express();
 
-  const redisClient = new Redis(FLY ? REDIS_URL! : '', {
+  const redisClient = new Redis(FLY ? REDIS_URL! : "", {
     family: 6,
   });
 
@@ -56,7 +55,11 @@ const main = async () => {
 
   app.use(
     cors({
-      origin: ["https://studio.apollographql.com", "http://localhost:3000"],
+      origin: [
+        "https://studio.apollographql.com",
+        "http://localhost:3000",
+        "https://liredit-swart.vercel.app",
+      ],
       credentials: true,
     })
   );
