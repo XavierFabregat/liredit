@@ -26,7 +26,7 @@ const main = async () => {
       console.log(err);
     });
 
-  await AppDataSource.runMigrations().then((res) => {
+   await AppDataSource.runMigrations().then((res) => {
     console.log("AppDataSource is migrated with result: ", res);
   });
   const app = Express();

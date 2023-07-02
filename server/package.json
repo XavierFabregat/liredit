@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "ts-dev": "ts-node src/index.ts",
-    "start": "node dist/index.js",
-    "dev": "npx nodemon dist/index.js",
+    "start": "cross-env DB=elephantSQL node dist/index.js",
+    "dev": "cross-env DB=elephantSQL npx nodemon dist/index.js",
     "watch": "tsc -w",
     "apollo": "APOLLO=true npm run dev"
   },
@@ -28,6 +28,7 @@
     "argon2": "^0.30.3",
     "connect-redis": "^7.1.0",
     "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "express-session": "^1.17.3",
