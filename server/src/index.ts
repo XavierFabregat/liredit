@@ -18,7 +18,7 @@ declare module "express-session" {
   }
 }
 
-const { FLY, REDIS_URL, PORT } = process.env;
+const { FLY, REDIS_URL, PORT, HOST } = process.env;
 
 const main = async () => {
   await AppDataSource.initialize()
@@ -100,7 +100,7 @@ const main = async () => {
   apolloServer.applyMiddleware({ app, cors: false });
 
   app.listen(PORT || 4000, () => {
-    console.log(`server started on http://localhost:${PORT || 4000}`);
+    console.log(`server started on http://${HOST}:${PORT || 4000}`);
   });
 };
 
