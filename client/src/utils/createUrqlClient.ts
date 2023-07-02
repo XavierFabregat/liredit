@@ -41,22 +41,38 @@ export const cursorPagination = (): Resolver => {
     }
 
     const isItInTheCache = cache.resolve(
-      entityKey,
-      `${fieldName}(${stringifyVariables(fieldArgs)})`
+      cache.resolve(
+        entityKey,
+        `${fieldName}(${stringifyVariables(fieldArgs)})`
+      ) as string,
+      "posts"
     );
 
     info.partial = !isItInTheCache;
 
     const results: string[] = [];
+    let hasMore = true;
 
     fieldInfos.forEach((fi) => {
-      const data = cache.resolve(entityKey, fi.fieldKey) as string[];
+      const key = cache.resolve(entityKey, fi.fieldKey) as string;
+
+      const data = cache.resolve(key, "posts") as string[];
+      const _hasMore = cache.resolve(key, "hasMore") as boolean;
+
+      if (!_hasMore) {
+        hasMore = _hasMore;
+      }
+
       results.push(...data);
     });
 
     console.log("results: ", results);
 
-    return results;
+    return {
+      __typename: "PaginatedPosts",
+      hasMore,
+      posts: results,
+    };
 
     // check if the data is in the cache
     // and return undefined if it is not
@@ -117,10 +133,23 @@ export const cursorPagination = (): Resolver => {
   };
 };
 
+const { NEXT_PUBLIC_FLY } = process.env;
+
+console.log("FLY: ", NEXT_PUBLIC_FLY);
+
+const url = NEXT_PUBLIC_FLY
+  ? "https://liredit-server.fly.dev/graphql"
+  : "http://localhost:4000/graphql";
+
+console.log("URL: ", url);
+
 export const createUrqlClient = (ssrExchange: any, ctx: any) => ({
-  url: "http://localhost:4000/graphql",
+  url: "https://liredit-server.fly.dev/graphql",
   exchanges: [
     cacheExchange({
+      keys: {
+        PaginatedPosts: () => null,
+      },
       resolvers: {
         Query: {
           posts: cursorPagination(),
