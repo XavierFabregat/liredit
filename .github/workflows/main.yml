@@ -12,7 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checkout the repo
+      - name: List directory
+        run: ls -a
       - uses: actions/checkout@v2
       - uses: superfly/flyctl-actions@1.1
         with:
-          args: "deploy --app ${{ secrets.FLY_APP_NAME }} --remote-only --config ./server/fly.toml --dockerfile ./server/Dockerfile"
+          args: "deploy ./server --app ${{ secrets.FLY_APP_NAME }} --remote-only --config ./server/fly.toml --dockerfile ./server/Dockerfile"
