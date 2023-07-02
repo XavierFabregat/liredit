@@ -17,6 +17,12 @@ declare module "express-session" {
   }
 }
 
+const { FLY, REDIS_URL } = process.env;
+
+console.log(FLY, "<== FLY");
+console.log(REDIS_URL, "<== REDIS_URL");
+
+
 const main = async () => {
   await AppDataSource.initialize()
     .then(() => {
@@ -31,7 +37,9 @@ const main = async () => {
   });
   const app = Express();
 
-  const redisClient = new Redis();
+  const redisClient = new Redis(FLY ? REDIS_URL! : '', {
+    family: 6,
+  });
 
   redisClient.on("connect", () => {
     console.log("Redis client connected");
