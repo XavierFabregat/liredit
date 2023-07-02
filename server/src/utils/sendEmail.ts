@@ -1,10 +1,5 @@
 import nodemailer from "nodemailer";
 
-console.log("==========================");
-console.log("process.env.NODEMAILER_EMAIL", process.env.NODEMAILER_EMAIL);
-console.log("process.env.NODEMAILER_PASSWORD", process.env.NODEMAILER_PASSWORD);
-console.log("==========================");
-
 export async function sendEmail(to: string, html: string) {
   // const testAccount = await nodemailer.createTestAccount();
   // console.log("testAccount", testAccount);
