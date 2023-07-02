@@ -10,6 +10,7 @@ import "./loadEnv";
 import { COOKIE_NAME, __prod__ } from "./constants";
 import { HelloResolver, PostResolver, UserResolver } from "./resolvers";
 import { AppDataSource } from "./dataSource";
+import { logHeaders } from "./middleware/seeResponse";
 
 declare module "express-session" {
   interface Session {
@@ -64,23 +65,28 @@ const main = async () => {
     })
   );
 
-  console.log(process.env.APOLLO, "<== process.env.APOLLO");
+  app.use(logHeaders);
+
+  console.log(__prod__, "<== prod");
 
   app.use(
     session({
       name: COOKIE_NAME,
       store: redisStore,
-      secret: "pisenpfnewpfnpwfniwefwnpf`weofwoew`fnwefwef",
+      secret: process.env.SESSION_SECRET!,
       resave: false,
       saveUninitialized: false,
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
-        httpOnly: true,
-        sameSite: process.env.APOLLO ? "lax" : "lax", // csrf => protect from csrf, why lax? https://owasp.org/www-community/SameSite
-        secure: process.env.APOLLO ? false : __prod__, // cookie only works in https
+        httpOnly: true, // cookie only works in http
+        domain: __prod__ ? "liredit-server.fly.dev" : undefined,
+        sameSite: __prod__ ? "none" : "lax", // csrf => protect from csrf, why lax? https://owasp.org/www-community/SameSite
+        secure: __prod__, // cookie only works in https
       },
     })
   );
+
+  app.enable("trust proxy");
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
