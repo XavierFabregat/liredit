@@ -20,9 +20,6 @@ declare module "express-session" {
 
 const { FLY, REDIS_URL } = process.env;
 
-console.log(FLY, "<== FLY");
-console.log(REDIS_URL, "<== REDIS_URL");
-
 const main = async () => {
   await AppDataSource.initialize()
     .then(() => {
@@ -66,8 +63,6 @@ const main = async () => {
   );
 
   app.use(logHeaders);
-
-  console.log(__prod__, "<== prod");
 
   app.use(
     session({
