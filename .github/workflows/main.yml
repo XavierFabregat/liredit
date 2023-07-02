@@ -13,10 +13,6 @@ jobs:
     steps:
       # Checkout the repo
       - uses: actions/checkout@v2
-      # cd into server directory and deploy to Fly
-      - name: List directory contents
-        run: ls -a
-      - name: Deploy to Fly
-        run: |
-          cd server
-          superfly/flyctl-actions@1.1 deploy --app ${{ secrets.FLY_APP_NAME }}
+      - uses: superfly/flyctl-actions@1.1
+        with:
+          args: "deploy --app ${{ secrets.FLY_APP_NAME }} --remote-only"
