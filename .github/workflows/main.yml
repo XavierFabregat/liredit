@@ -11,7 +11,12 @@ jobs:
     name: Deploy app
     runs-on: ubuntu-latest
     steps:
+      # Checkout the repo
       - uses: actions/checkout@v2
+      # cd into server directory
+      - name: Change directory
+        run: cd server
+      # Deploy to Fly
       - uses: superfly/flyctl-actions@1.1
         with:
           args: "deploy --app ${{ secrets.FLY_APP_NAME }} --remote-only"
