@@ -111,14 +111,10 @@ export class UserResolver {
       1000 * 60 * 60 * 24 * 3 // 3 days expiration
     );
 
-    console.log("user.id", user.id);
-
     await sendEmail(
       email,
       `<a href="http://localhost:3000/change-password/${token}">Reset Password</a>`
     );
-
-    console.log("hello");
 
     return true;
   }
