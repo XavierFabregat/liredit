@@ -5,6 +5,7 @@ import {
   Ctx,
   Field,
   FieldResolver,
+  Info,
   InputType,
   Int,
   Mutation,
@@ -46,19 +47,59 @@ export class PostResolver {
   async posts(
     @Arg("limit", () => Int) limit: number,
     @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+    // @Info() info: any
   ): Promise<PaginatedPosts> {
     const realLimit = Math.min(50, limit);
     const paginatedLimit = realLimit + 1;
+
+    // console.log("info: ", info);
+
+    const replacements: any[] = [paginatedLimit];
+
+    if (cursor) {
+      replacements.push(new Date(parseInt(cursor)));
+    }
+
+    const posts = await AppDataSource.query(
+      `
+      SELECT p.*, 
+      json_build_object(
+        'id', u.id,
+        'username', u.username,
+        'email', u.email,
+        'createdAt', u."createdAt",
+        'updatedAt', u."updatedAt"
+      ) creator
+      FROM post p
+      INNER JOIN public.user u on u.id = p."creatorId"
+      ${cursor ? 'WHERE p."createdAt" < $2' : ""}
+      ORDER BY p."createdAt" DESC
+      LIMIT $1
+    `,
+      replacements
+    );
+
+    /*
     const qb = AppDataSource.getRepository(Post)
-      .createQueryBuilder("p")
-      .orderBy('"createdAt"', "DESC")
+      .createQueryBuilder("p") // alias for Post
+      .innerJoinAndSelect(
+        "p.creator",
+        "u", // alias for User
+        'u.id = p."creatorId"' // join condition (Post.creatorId = User.id)
+      )
+      .orderBy('p."createdAt"', "DESC")
       .take(paginatedLimit);
 
     if (cursor) {
-      qb.where('"createdAt" < :cursor', { cursor: new Date(parseInt(cursor)) });
+      qb.where('p."createdAt" < :cursor', {
+        cursor: new Date(parseInt(cursor)),
+      });
     }
 
     const posts = await qb.getMany();
+    */
+
+    // console.log(posts);
 
     return {
       posts: posts.slice(0, realLimit),

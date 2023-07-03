@@ -25,9 +25,11 @@ const main = async () => {
         .catch((err) => {
         console.log(err);
     });
-    await dataSource_1.AppDataSource.runMigrations().then((res) => {
-        console.log("AppDataSource is migrated with result: ", res);
-    });
+    if (!constants_1.__prod__) {
+        await dataSource_1.AppDataSource.runMigrations().then((res) => {
+            console.log("AppDataSource is migrated with result: ", res);
+        });
+    }
     const app = (0, express_1.default)();
     const redisClient = new ioredis_1.default(FLY ? REDIS_URL : "", {
         family: 6,

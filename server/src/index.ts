@@ -29,9 +29,12 @@ const main = async () => {
       console.log(err);
     });
 
-  await AppDataSource.runMigrations().then((res) => {
-    console.log("AppDataSource is migrated with result: ", res);
-  });
+  if (!__prod__) {
+    await AppDataSource.runMigrations().then((res) => {
+      console.log("AppDataSource is migrated with result: ", res);
+    });
+  }
+
   const app = Express();
 
   const redisClient = new Redis(FLY ? REDIS_URL! : "", {
