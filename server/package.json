@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "ts-dev": "ts-node src/index.ts",
-    "start": "npx tsc && cross-env DB=elephantSQL node dist/index.js",
+    "start": "cross-env DB=elephantSQL node dist/index.js",
     "dev": "cross-env DB=elephantSQL npx nodemon dist/index.js",
     "watch": "tsc -w",
     "apollo": "APOLLO=true npm run dev"
