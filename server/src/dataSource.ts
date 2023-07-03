@@ -1,6 +1,6 @@
 import { DataSource } from "typeorm";
 import { __prod__ } from "./constants";
-import { User, Post } from "./entities";
+import { User, Post, Updoot } from "./entities";
 import path from "path";
 
 const {
@@ -21,7 +21,7 @@ export const AppDataSource =
         database: ELEPHANTSQL_DB,
         password: ELEPHANTSQL_PASSWORD,
         port: Number(ELEPHANTSQL_PORT),
-        entities: [User, Post],
+        entities: [User, Post, Updoot],
         synchronize: true,
         logging: !__prod__,
         migrations: [path.join(__dirname, "./migration/*.js")],
@@ -33,7 +33,7 @@ export const AppDataSource =
         username: "postgres",
         database: "liredit",
         password: "12345",
-        entities: [User, Post],
+        entities: [User, Post, Updoot],
         synchronize: true,
         logging: !__prod__,
         migrations: [path.join(__dirname, "./migration/*.js")],

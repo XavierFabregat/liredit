@@ -70,7 +70,7 @@ const main = async () => {
     app.enable("trust proxy");
     const apolloServer = new apollo_server_express_1.ApolloServer({
         schema: await (0, type_graphql_1.buildSchema)({
-            resolvers: [resolvers_1.HelloResolver, resolvers_1.PostResolver, resolvers_1.UserResolver],
+            resolvers: [resolvers_1.HelloResolver, resolvers_1.PostResolver, resolvers_1.UserResolver, resolvers_1.UpdootResolver],
             validate: false,
         }),
         context: ({ req, res }) => ({

@@ -8,7 +8,12 @@ import Redis from "ioredis";
 import { buildSchema } from "type-graphql";
 import "./loadEnv";
 import { COOKIE_NAME, __prod__ } from "./constants";
-import { HelloResolver, PostResolver, UserResolver } from "./resolvers";
+import {
+  HelloResolver,
+  PostResolver,
+  UpdootResolver,
+  UserResolver,
+} from "./resolvers";
 import { AppDataSource } from "./dataSource";
 import { logHeaders } from "./middleware/seeResponse";
 
@@ -88,7 +93,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [HelloResolver, PostResolver, UserResolver],
+      resolvers: [HelloResolver, PostResolver, UserResolver, UpdootResolver],
       validate: false,
     }),
     context: ({ req, res }) => ({

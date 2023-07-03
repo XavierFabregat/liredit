@@ -1,9 +1,5 @@
 import { HelloResolver } from "./hello";
 import { PostResolver } from "./post";
 import { UserResolver } from "./user";
-
-export {
-    HelloResolver,
-    PostResolver,
-    UserResolver
-};
+import { UpdootResolver } from "./updoot";
+export { HelloResolver, PostResolver, UserResolver, UpdootResolver };
