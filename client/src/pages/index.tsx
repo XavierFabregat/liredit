@@ -1,5 +1,4 @@
 import { withUrqlClient } from "next-urql";
-import { NavBar } from "../components/NavBar";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import { usePostsQuery } from "../generated/graphql";
 import { Layout } from "../components/Layout";
@@ -8,11 +7,15 @@ import {
   Button,
   Flex,
   Heading,
+  IconButton,
   Link,
   Stack,
   Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
+import { TEXT_SNIPPET_LENGTH } from "../constants";
+import { ChevronDownIcon, ChevronUpIcon } from "@chakra-ui/icons";
+import { UpdootSection } from "../components/updoot";
 
 const Index = () => {
   const [variables, setVariables] = useState({
@@ -41,13 +44,17 @@ const Index = () => {
       ) : (
         <Stack spacing={8}>
           {data!.posts.posts.map((p) => (
-            <>
-              <Box p={5} shadow="md" borderWidth="1px" key={p.id}>
-                <Heading fontSize="xl">{p.title}</Heading>{" "}
+            <Flex p={5} shadow="md" borderWidth="1px" key={p.id}>
+              <UpdootSection post={p} />
+              <Box>
+                <Heading fontSize="xl">{p.title}</Heading>
                 <Text>Posted by u\{p.creator.username}</Text>
-                <Text mt={4}>{p.textSnippet} ...</Text>
+                <Text mt={4}>
+                  {p.textSnippet}{" "}
+                  {p.textSnippet.length < TEXT_SNIPPET_LENGTH ? "" : "..."}
+                </Text>
               </Box>
-            </>
+            </Flex>
           ))}
         </Stack>
       )}

@@ -7,9 +7,11 @@ import {
   MeDocument,
   MeQuery,
   RegisterMutation,
+  VoteMutationVariables,
 } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import Router from "next/router";
+import gql from "graphql-tag";
 
 const errorExchange: Exchange =
   ({ forward }) =>
@@ -98,6 +100,50 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => ({
       },
       updates: {
         Mutation: {
+          vote: (_result, args, cache, info) => {
+            const { postId, value } = args as VoteMutationVariables;
+            const data = cache.readFragment(
+              gql`
+                fragment _ on Post {
+                  id
+                  points
+                  voteStatus
+                }
+              `,
+              { id: postId } as any
+            );
+            console.log("data in vote invalidation: ", data);
+            if (data) {
+              let newPoints;
+              let newVoteStatus;
+              if (data.voteStatus === args.value) {
+                // if the user has already voted with the same value, then we want to undo the vote
+                newPoints = (data.points as number) - value;
+                newVoteStatus = null;
+              } else if (data.voteStatus === -(args.value as number)) {
+                // if the user has already voted with the opposite value, then we want to change the vote
+                newPoints = (data.points as number) + 2 * value;
+                newVoteStatus = value;
+              } else {
+                // if the user has not voted yet, then we want to add the vote
+                newPoints = (data.points as number) + value;
+                newVoteStatus = value;
+              }
+              cache.writeFragment(
+                gql`
+                  fragment __ on Post {
+                    points
+                    voteStatus
+                  }
+                `,
+                {
+                  id: postId,
+                  points: newPoints,
+                  voteStatus: newVoteStatus,
+                } as any
+              );
+            }
+          },
           createPost: (_result, args, cache, info) => {
             const allFields = cache.inspectFields("Query");
             console.log("allFields: ", allFields);
