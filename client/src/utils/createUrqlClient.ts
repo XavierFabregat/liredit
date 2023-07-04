@@ -12,6 +12,7 @@ import {
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import Router from "next/router";
 import gql from "graphql-tag";
+import { isServer } from "./isServer";
 
 const errorExchange: Exchange =
   ({ forward }) =>
@@ -206,7 +207,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => ({
   fetchOptions: () => ({
     credentials: "include" as const,
     headers: {
-      cookie: ctx && ctx.req ? ctx.req.headers.cookie : document.cookie,
+      cookie: isServer() ? ctx.req.headers.cookie : undefined,
     },
   }),
 });
