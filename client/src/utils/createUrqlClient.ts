@@ -80,14 +80,15 @@ const { NEXT_PUBLIC_FLY } = process.env;
 
 console.log("FLY: ", NEXT_PUBLIC_FLY);
 
-const url = NEXT_PUBLIC_FLY
-  ? "https://liredit-server.fly.dev/graphql"
-  : "http://localhost:4000/graphql";
+const url =
+  process.env.NODE_ENV === "production"
+    ? "https://liredit-server.fly.dev/graphql"
+    : "http://localhost:4000/graphql";
 
 console.log("URL: ", url);
 
 export const createUrqlClient = (ssrExchange: any, ctx: any) => ({
-  url: "http://localhost:4000/graphql",
+  url,
   exchanges: [
     cacheExchange({
       keys: {
