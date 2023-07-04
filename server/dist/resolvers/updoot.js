@@ -16,24 +16,53 @@ exports.UpdootResolver = void 0;
 const isAuth_1 = require("../middleware/isAuth");
 const type_graphql_1 = require("type-graphql");
 const dataSource_1 = require("../dataSource");
-const sqlstring_1 = require("sqlstring");
+const entities_1 = require("../entities");
 let UpdootResolver = exports.UpdootResolver = class UpdootResolver {
     async vote(_postId, _value, { req }) {
+        const { userId } = req.session;
         const isUpdoot = _value !== -1;
         const value = isUpdoot ? 1 : -1;
-        const { userId } = req.session;
-        await dataSource_1.AppDataSource.query(`
-        START TRANSACTION;
-
-        INSERT INTO updoot ("userId", "postId", value)
-        VALUES (${(0, sqlstring_1.escape)(userId)}, ${(0, sqlstring_1.escape)(_postId)}, ${(0, sqlstring_1.escape)(value)});
-
-        UPDATE post
-        SET points = points + ${(0, sqlstring_1.escape)(value)}
-        WHERE id = ${(0, sqlstring_1.escape)(_postId)};
-        
-        COMMIT;
-      `);
+        const updoot = await entities_1.Updoot.findOne({ where: { postId: _postId, userId } });
+        if (updoot && updoot.value !== value) {
+            await dataSource_1.AppDataSource.transaction(async (tm) => {
+                await tm.query(`
+          UPDATE updoot
+          SET value = $1
+          WHERE "postId" = $2 AND "userId" = $3;
+        `, [value, _postId, userId]);
+                await tm.query(`
+          UPDATE post
+          SET points = points + $1
+          WHERE id = $2;
+        `, [2 * value, _postId]);
+            });
+        }
+        else if (updoot && updoot.value === value) {
+            await dataSource_1.AppDataSource.transaction(async (tm) => {
+                await tm.query(`
+          DELETE FROM updoot
+          WHERE "postId" = $1 AND "userId" = $2;
+        `, [_postId, userId]);
+                await tm.query(`
+          UPDATE post
+          SET points = points + $1
+          WHERE id = $2;
+        `, [-1 * value, _postId]);
+            });
+        }
+        else {
+            await dataSource_1.AppDataSource.transaction(async (tm) => {
+                await tm.query(`
+          INSERT INTO updoot ("userId", "postId", value)
+          VALUES ($1, $2, $3);
+        `, [userId, _postId, value]);
+                await tm.query(`
+          UPDATE post
+          SET points = points + $1
+          WHERE id = $2;
+        `, [value, _postId]);
+            });
+        }
         return true;
     }
 };

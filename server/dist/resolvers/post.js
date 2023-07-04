@@ -47,13 +47,17 @@ let PostResolver = exports.PostResolver = class PostResolver {
     textSnippet(root) {
         return root.text.slice(0, 50);
     }
-    async posts(limit, cursor) {
+    async posts(limit, cursor, { req }) {
         const realLimit = Math.min(50, limit);
         const paginatedLimit = realLimit + 1;
         const replacements = [paginatedLimit];
+        if (req.session.userId) {
+            replacements.push(req.session.userId);
+        }
         if (cursor) {
             replacements.push(new Date(parseInt(cursor)));
         }
+        console.log("replacements: ", replacements);
         const posts = await dataSource_1.AppDataSource.query(`
       SELECT p.*, 
       json_build_object(
@@ -63,9 +67,12 @@ let PostResolver = exports.PostResolver = class PostResolver {
         'createdAt', u."createdAt",
         'updatedAt', u."updatedAt"
       ) creator
+      ${req.session.userId
+            ? ',(SELECT value FROM updoot WHERE "userId" = $2 and "postId" = p.id) "voteStatus"'
+            : ',null as "voteStatus"'}
       FROM post p
       INNER JOIN public.user u on u.id = p."creatorId"
-      ${cursor ? 'WHERE p."createdAt" < $2' : ""}
+      ${cursor ? 'WHERE p."createdAt" < $3' : ""}
       ORDER BY p."createdAt" DESC
       LIMIT $1
     `, replacements);
@@ -108,8 +115,9 @@ __decorate([
     (0, type_graphql_1.Query)(() => PaginatedPosts),
     __param(0, (0, type_graphql_1.Arg)("limit", () => type_graphql_1.Int)),
     __param(1, (0, type_graphql_1.Arg)("cursor", () => String, { nullable: true })),
+    __param(2, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:paramtypes", [Number, Object, Object]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "posts", null);
 __decorate([
