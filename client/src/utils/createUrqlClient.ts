@@ -91,6 +91,10 @@ console.log("URL: ", url);
 export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   let cookie = "";
   if (isServer()) {
+    console.log("ctx: ", ctx);
+    console.log("ctx.req: ", ctx.req);
+    console.log("headers: ", ctx.req?.headers);
+    console.log("cookie: ", ctx.req?.headers?.cookie);
     cookie = ctx?.req?.headers?.cookie;
   }
 
