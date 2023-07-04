@@ -88,126 +88,136 @@ const url =
 
 console.log("URL: ", url);
 
-export const createUrqlClient = (ssrExchange: any, ctx: any) => ({
-  url,
-  exchanges: [
-    cacheExchange({
-      keys: {
-        PaginatedPosts: () => null,
-      },
-      resolvers: {
-        Query: {
-          posts: cursorPagination(),
+export const createUrqlClient = (ssrExchange: any, ctx: any) => {
+  let cookie = "";
+  if (isServer()) {
+    cookie = ctx?.req?.headers?.cookie;
+  }
+
+  console.log("COOKIE: ", cookie);
+  return {
+    url,
+    exchanges: [
+      cacheExchange({
+        keys: {
+          PaginatedPosts: () => null,
         },
-      },
-      updates: {
-        Mutation: {
-          vote: (_result, args, cache, info) => {
-            const { postId, value } = args as VoteMutationVariables;
-            const data = cache.readFragment(
-              gql`
-                fragment _ on Post {
-                  id
-                  points
-                  voteStatus
-                }
-              `,
-              { id: postId } as any
-            );
-            console.log("data in vote invalidation: ", data);
-            if (data) {
-              let newPoints;
-              let newVoteStatus;
-              if (data.voteStatus === args.value) {
-                // if the user has already voted with the same value, then we want to undo the vote
-                newPoints = (data.points as number) - value;
-                newVoteStatus = null;
-              } else if (data.voteStatus === -(args.value as number)) {
-                // if the user has already voted with the opposite value, then we want to change the vote
-                newPoints = (data.points as number) + 2 * value;
-                newVoteStatus = value;
-              } else {
-                // if the user has not voted yet, then we want to add the vote
-                newPoints = (data.points as number) + value;
-                newVoteStatus = value;
-              }
-              cache.writeFragment(
+        resolvers: {
+          Query: {
+            posts: cursorPagination(),
+          },
+        },
+        updates: {
+          Mutation: {
+            vote: (_result, args, cache, info) => {
+              const { postId, value } = args as VoteMutationVariables;
+              const data = cache.readFragment(
                 gql`
-                  fragment __ on Post {
+                  fragment _ on Post {
+                    id
                     points
                     voteStatus
                   }
                 `,
-                {
-                  id: postId,
-                  points: newPoints,
-                  voteStatus: newVoteStatus,
-                } as any
+                { id: postId } as any
               );
-            }
-          },
-          createPost: (_result, args, cache, info) => {
-            const allFields = cache.inspectFields("Query");
-            console.log("allFields: ", allFields);
-            const fieldInfos = allFields.filter(
-              (info) => info.fieldName === "posts"
-            );
-            console.log("fieldInfos: ", fieldInfos);
-            fieldInfos.forEach((fi) => {
-              cache.invalidate("Query", "posts", fi.arguments || {});
-            });
-          },
-          logout: (_result, args, cache, info) => {
-            betterUpdateQuery<LogoutMutation, MeQuery>(
-              cache,
-              { query: MeDocument },
-              _result,
-              () => ({ me: null })
-            );
-          },
-          login: (_result, args, cache, info) => {
-            betterUpdateQuery<LoginMutation, MeQuery>(
-              cache,
-              { query: MeDocument },
-              _result,
-              (result, query) => {
-                if (result.login.errors) {
-                  return query;
+              console.log("data in vote invalidation: ", data);
+              if (data) {
+                let newPoints;
+                let newVoteStatus;
+                if (data.voteStatus === args.value) {
+                  // if the user has already voted with the same value, then we want to undo the vote
+                  newPoints = (data.points as number) - value;
+                  newVoteStatus = null;
+                } else if (data.voteStatus === -(args.value as number)) {
+                  // if the user has already voted with the opposite value, then we want to change the vote
+                  newPoints = (data.points as number) + 2 * value;
+                  newVoteStatus = value;
                 } else {
-                  return {
-                    me: result.login.user,
-                  };
+                  // if the user has not voted yet, then we want to add the vote
+                  newPoints = (data.points as number) + value;
+                  newVoteStatus = value;
                 }
+                cache.writeFragment(
+                  gql`
+                    fragment __ on Post {
+                      points
+                      voteStatus
+                    }
+                  `,
+                  {
+                    id: postId,
+                    points: newPoints,
+                    voteStatus: newVoteStatus,
+                  } as any
+                );
               }
-            );
-          },
-          register: (_result, args, cache, info) => {
-            betterUpdateQuery<RegisterMutation, MeQuery>(
-              cache,
-              { query: MeDocument },
-              _result,
-              (result, query) => {
-                if (result.register.errors) {
-                  return query;
-                } else {
-                  return {
-                    me: result.register.user,
-                  };
+            },
+            createPost: (_result, args, cache, info) => {
+              const allFields = cache.inspectFields("Query");
+              console.log("allFields: ", allFields);
+              const fieldInfos = allFields.filter(
+                (info) => info.fieldName === "posts"
+              );
+              console.log("fieldInfos: ", fieldInfos);
+              fieldInfos.forEach((fi) => {
+                cache.invalidate("Query", "posts", fi.arguments || {});
+              });
+            },
+            logout: (_result, args, cache, info) => {
+              betterUpdateQuery<LogoutMutation, MeQuery>(
+                cache,
+                { query: MeDocument },
+                _result,
+                () => ({ me: null })
+              );
+            },
+            login: (_result, args, cache, info) => {
+              betterUpdateQuery<LoginMutation, MeQuery>(
+                cache,
+                { query: MeDocument },
+                _result,
+                (result, query) => {
+                  if (result.login.errors) {
+                    return query;
+                  } else {
+                    return {
+                      me: result.login.user,
+                    };
+                  }
                 }
-              }
-            );
+              );
+            },
+            register: (_result, args, cache, info) => {
+              betterUpdateQuery<RegisterMutation, MeQuery>(
+                cache,
+                { query: MeDocument },
+                _result,
+                (result, query) => {
+                  if (result.register.errors) {
+                    return query;
+                  } else {
+                    return {
+                      me: result.register.user,
+                    };
+                  }
+                }
+              );
+            },
           },
         },
-      },
+      }),
+      errorExchange,
+      ssrExchange,
+      fetchExchange,
+    ],
+    fetchOptions: () => ({
+      credentials: "include" as const,
+      headers: cookie
+        ? {
+            cookie,
+          }
+        : undefined,
     }),
-    errorExchange,
-    ssrExchange,
-    fetchExchange,
-  ],
-  fetchOptions: () => ({
-    credentials: "include" as const,
-    headers: {
-      cookie: isServer() ? ctx?.req?.headers?.cookie : undefined,
-    },
-  }),
-});
+  };
+};
