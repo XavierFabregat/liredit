@@ -51,11 +51,14 @@ let PostResolver = exports.PostResolver = class PostResolver {
         const realLimit = Math.min(50, limit);
         const paginatedLimit = realLimit + 1;
         const replacements = [paginatedLimit];
+        console.log("req.session.userId: ", req.session.userId);
         if (req.session.userId) {
             replacements.push(req.session.userId);
         }
+        let cursorIndex = 3;
         if (cursor) {
             replacements.push(new Date(parseInt(cursor)));
+            cursorIndex = replacements.length;
         }
         console.log("replacements: ", replacements);
         const posts = await dataSource_1.AppDataSource.query(`
@@ -72,7 +75,7 @@ let PostResolver = exports.PostResolver = class PostResolver {
             : ',null as "voteStatus"'}
       FROM post p
       INNER JOIN public.user u on u.id = p."creatorId"
-      ${cursor ? 'WHERE p."createdAt" < $3' : ""}
+      ${cursor ? `WHERE p."createdAt" < $${cursorIndex}` : ""}
       ORDER BY p."createdAt" DESC
       LIMIT $1
     `, replacements);

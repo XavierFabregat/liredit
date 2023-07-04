@@ -55,12 +55,16 @@ export class PostResolver {
 
     const replacements: any[] = [paginatedLimit];
 
+    console.log("req.session.userId: ", req.session.userId);
+
     if (req.session.userId) {
       replacements.push(req.session.userId);
     }
 
+    let cursorIndex = 3;
     if (cursor) {
       replacements.push(new Date(parseInt(cursor)));
+      cursorIndex = replacements.length;
     }
 
     console.log("replacements: ", replacements);
@@ -82,7 +86,7 @@ export class PostResolver {
       }
       FROM post p
       INNER JOIN public.user u on u.id = p."creatorId"
-      ${cursor ? 'WHERE p."createdAt" < $3' : ""}
+      ${cursor ? `WHERE p."createdAt" < $${cursorIndex}` : ""}
       ORDER BY p."createdAt" DESC
       LIMIT $1
     `,
@@ -107,6 +111,7 @@ export class PostResolver {
     }
 
     const posts = await qb.getMany();
+    console.log("posts: ", posts);
     */
 
     return {
