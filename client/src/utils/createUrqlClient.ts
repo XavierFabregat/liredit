@@ -91,7 +91,10 @@ console.log("URL: ", url);
 export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   let cookie = "";
   if (isServer()) {
-    console.log("headers in server : ", ctx?.req?.headers);
+    // console.log("headers in server : ", ctx?.req?.headers);
+    if (process.env.NODE_ENV === "production") {
+      console.log("headers in server : ", ctx?.req?.headers["Cookie"]);
+    }
     console.log("cookie: ", ctx?.req?.headers?.cookie);
     cookie = ctx?.req?.headers?.cookie;
   }
